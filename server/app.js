@@ -5,6 +5,7 @@ const partials = require('express-partials');
 const bodyParser = require('body-parser');
 const Auth = require('./middleware/auth');
 const models = require('./models');
+const cookieParser = require('./middleware/cookieParser');
 
 const app = express();
 
@@ -14,20 +15,20 @@ app.use(partials());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+// app.use(cookieParser(req, res));
 
 
-
-app.get('/', 
+app.get('/', cookieParser, 
 (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
+app.get('/create', cookieParser, 
 (req, res) => {
   res.render('index');
 });
 
-app.get('/links', 
+app.get('/links', cookieParser, 
 (req, res, next) => {
   models.Links.getAll()
     .then(links => {
@@ -38,7 +39,7 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
+app.post('/links', cookieParser, 
 (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
@@ -78,7 +79,7 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
-app.get('/signup',
+app.get('/signup', 
 (req, res, next) => {
   res.render('signup');
 });
@@ -86,7 +87,6 @@ app.get('/signup',
 
 app.post('/signup',
 (req, res, next) => {
-  console.log('signup type req.body', typeof req.body);
   return models.Users.create(req.body)
   .then(results => {
     res.redirect('/');
@@ -105,7 +105,7 @@ app.get('/login',
 
 app.post('/login',
 (req, res, next) => {
-  console.log('login req.body', req.body);
+  console.log('login attempt: ', req.body);
   return models.Users.get({'username': req.body.username})
   .then(results => {
     return models.Users.compare(req.body.password, results.password, results.salt);
