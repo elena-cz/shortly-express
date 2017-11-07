@@ -12,10 +12,7 @@ const parseCookies = (req, res, next) => {
     }
     
     req.cookies = cookies;
-    console.log(cookies);
-    
   }
-   // add it to the response via res.write() ??
   next();
 };
 

@@ -105,7 +105,6 @@ app.get('/login',
 
 app.post('/login',
 (req, res, next) => {
-  console.log('login attempt: ', req.body);
   return models.Users.get({'username': req.body.username})
   .then(results => {
     return models.Users.compare(req.body.password, results.password, results.salt);
