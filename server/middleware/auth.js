@@ -6,60 +6,40 @@ module.exports.createSession = (req, res, next) => {
   console.log('req.cookies', req.cookies);
   
   if (req.cookies.shortlyid) {
-    
+    // at this point, they have a cookie (they've been to the site before)
+    // Get Sessions data for shortlyid (i.e. hash) from DB
     return models.Sessions.get({hash: req.cookies.shortlyid})
     .then( (session) => {
+      // now we have the session object
+      // we know user has been here before b/c a session object exists for this shortlyId
+      // we know this user is ALSO logged in if session.user exists
+      req.session = session;
       res.session = session;
+    // this next line checks whether they have userID stored in Sessions for hash, which would mean they are logged in
+      
       models.Sessions.isLoggedIn(session);
     })
-    .then( (result) => {
-      
+    .then( (isLoggedInResult) => {
+      next();
       
     })
     .catch();
       
-    // } else {
-      
-    // }
+ 
   } else {
-    console.log('In create session');
     models.Sessions.create()
-    .then( (result) => {
-      return models.Sessions.get({id: result.insertId});
+    .then( (createResult) => {
+      return models.Sessions.get({id: createResult.insertId});
     })
-    .then((result) => {
-      console.log('result from creating session: \n\n', JSON.stringify(result, null, 2));
-      req.session = result;
+    .then((sessionDbResult) => {
+      res.cookies.shortlyid = {value: sessionDbResult.hash};
+      req.session = sessionDbResult;
       next();
     });
   }
   
 };
 
-
-// module.exports.checkSession = (req, res, next) => {
-//   // We have cookies, not literally
-//   // Get shortlyid
-//   // Query the DB for session ID (Session.get({id: sessionID}))
-//   // return true or false if exists
-  
-//   return new Promise(function(resolve, reject) {
-//     let result;
-//     if (req.cookies.shortlyid) {
-//       models.sessions.get();
-      
-//     } else {
-      
-//     }
-    
-//     resolve(result);
-    
-//   });
-  
-  
-//   console.log('req.cookies', req.cookies);
-  
-// };
 
 /************************************************************/
 // Add additional authentication middleware functions below
