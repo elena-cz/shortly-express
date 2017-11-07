@@ -78,6 +78,37 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
+app.get('/signup',
+(req, res, next) => {
+  res.render('signup');
+});
+
+
+app.post('/signup',
+(req, res, next) => {
+  console.log('signup type req.body', typeof req.body);
+  return models.Users.create(req.body)
+  .then(results => {
+    res.redirect('/');
+  })
+  .catch(err => {
+    res.redirect('/signup');
+  });
+  
+});
+
+
+app.get('/login',
+(req, res, next) => {
+  res.render('login');
+});
+
+app.post('/login',
+(req, res, next) => {
+  console.log('login req.body', req.body);
+  
+});
+
 
 
 /************************************************************/
