@@ -106,10 +106,30 @@ app.get('/login',
 app.post('/login',
 (req, res, next) => {
   console.log('login req.body', req.body);
+  return models.Users.get({'username': req.body.username})
+  .then(results => {
+    return models.Users.compare(req.body.password, results.password, results.salt);
+  })
+  .then(isLoggedIn => {
+    // create session id
+    // load allLinks with their data
+    if (isLoggedIn) {
+      res.redirect('/');     
+    } else {
+      res.redirect('/login');
+    }
+  })
+  .catch(err => {
+    res.redirect('/login');
+  });
   
 });
 
-
+// get(options) {
+//   let parsedOptions = parseData(options);
+//   let queryString = `SELECT * FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')} LIMIT 1`;
+//   return executeQuery(queryString, parsedOptions.values).then(results => results[0]);
+// }
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
