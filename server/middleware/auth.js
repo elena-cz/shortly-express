@@ -10,14 +10,23 @@ module.exports.createSession = (req, res, next) => {
     // Get Sessions data for shortlyid (i.e. hash) from DB
     return models.Sessions.get({hash: req.cookies.shortlyid})
     .then( (session) => {
-      // now we have the session object
-      // we know user has been here before b/c a session object exists for this shortlyId
-      // we know this user is ALSO logged in if session.user exists
-      req.session = session;
-      res.session = session;
-    // this next line checks whether they have userID stored in Sessions for hash, which would mean they are logged in
+      // console.log('this is the session: ', JSON.stringify(session, null, 3));
       
-      models.Sessions.isLoggedIn(session);
+      if (!session) {
+        
+        
+        
+      } else {
+      
+        // now we have the session object
+        // we know user has been here before b/c a session object exists for this shortlyId
+        // we know this user is ALSO logged in if session.user exists
+        req.session = session;
+        res.session = session;
+        // this next line checks whether they have userID stored in Sessions for hash, which would mean they are logged in
+        
+        models.Sessions.isLoggedIn(session);
+      }
     })
     .then( (isLoggedInResult) => {
       next();
@@ -39,6 +48,23 @@ module.exports.createSession = (req, res, next) => {
   }
   
 };
+
+
+// var setSessionAndCookie = function() {
+//   models.Sessions.create()
+//     .then( (createResult) => {
+//       return models.Sessions.get({id: createResult.insertId});
+//     })
+//     .then((sessionDbResult) => {
+//       res.cookies.shortlyid = {value: sessionDbResult.hash};
+//       req.session = sessionDbResult;
+//       next();
+//     });
+  
+// };
+
+
+
 
 
 /************************************************************/
