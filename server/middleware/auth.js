@@ -9,9 +9,11 @@ var setSessionAndCookie = function(req, res, next) {
     })
     .then((sessionDbResult) => {
       var cookie = sessionDbResult.hash;
+      // request
       req.cookies.shortlyid = cookie;
-      res.cookies.shortlyid = {value: cookie};
       req.session = sessionDbResult;
+      // response
+      res.cookie('shortlyid', cookie);
       next();
     });
 };
@@ -30,15 +32,21 @@ module.exports.createSession = (req, res, next) => {
         // we know user has been here before b/c a session object exists for this shortlyId
         // we know this user is ALSO logged in if session.user exists
         req.session = session;
+        
         res.session = session;
+        
         // this next line checks whether they have userID stored in Sessions for hash, which would mean they are logged in
         models.Sessions.isLoggedIn(session);
+        next();// 
+      }
+    })
+    .then( (isLoggedInResult) => {
+      if (!isLoggedInResult) {
+        res.redirect('/login');
+      } else {
         next();
       }
     })
-    // .then( (isLoggedInResult) => {
-    //   next();
-    // })
     .catch();
   } else {
     setSessionAndCookie(req, res, next);

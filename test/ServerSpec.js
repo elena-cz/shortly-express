@@ -480,7 +480,7 @@ describe('', function() {
     });
   });
 
-  xdescribe('Sessions and cookies', function() {
+  describe('Sessions and cookies', function() {
     var requestWithSession;
     var cookieJar;
 
@@ -536,6 +536,9 @@ describe('', function() {
           SELECT users.username FROM users, sessions
           WHERE sessions.hash = ? AND users.id = sessions.userId
         `;
+        // var queryString = `
+        //   SELECT users.username FROM users
+        // `;
 
         db.query(queryString, cookieValue, function(error, users) {
           if (error) { return done(error); }

@@ -18,17 +18,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 // app.use(cookieParser(req, res));
 
 
-app.get('/', cookieParser, 
+app.get('/', cookieParser, Auth.createSession,  
 (req, res) => {
   res.render('index');
 });
 
-app.get('/create', cookieParser, 
+app.get('/create', cookieParser, Auth.createSession, 
 (req, res) => {
   res.render('index');
 });
 
-app.get('/links', cookieParser, 
+app.get('/links', cookieParser, Auth.createSession, 
 (req, res, next) => {
   models.Links.getAll()
     .then(links => {
@@ -39,7 +39,7 @@ app.get('/links', cookieParser,
     });
 });
 
-app.post('/links', cookieParser, 
+app.post('/links', cookieParser, Auth.createSession, 
 (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
@@ -79,13 +79,13 @@ app.post('/links', cookieParser,
 // Write your authentication routes here
 /************************************************************/
 
-app.get('/signup', 
+app.get('/signup', cookieParser,  
 (req, res, next) => {
   res.render('signup');
 });
 
 
-app.post('/signup',
+app.post('/signup', cookieParser, Auth.createSession, 
 (req, res, next) => {
   return models.Users.create(req.body)
   .then(results => {
@@ -98,22 +98,30 @@ app.post('/signup',
 });
 
 
-app.get('/login',
+app.get('/login', cookieParser,
 (req, res, next) => {
   res.render('login');
 });
 
-app.post('/login',
+app.post('/login', cookieParser, Auth.createSession, 
 (req, res, next) => {
   return models.Users.get({'username': req.body.username})
   .then(results => {
+    req.body.userId = results.id;
     return models.Users.compare(req.body.password, results.password, results.salt);
   })
   .then(isLoggedIn => {
     // create session id
     // load allLinks with their data
     if (isLoggedIn) {
-      res.redirect('/');     
+      console.log('req sesh hash: ', req.session.hash);
+      console.log('req body userId: ', req.body.userId);
+      console.log('req.cookies ', req.cookies);
+      
+      return models.Sessions.update({hash: req.session.hash}, {userId: req.body.userId})
+      .then(() => {
+        res.redirect('/');     
+      });
     } else {
       res.redirect('/login');
     }
@@ -122,13 +130,24 @@ app.post('/login',
     res.redirect('/login');
   });
   
+  
+  
 });
 
-// get(options) {
-//   let parsedOptions = parseData(options);
-//   let queryString = `SELECT * FROM ${this.tablename} WHERE ${parsedOptions.string.join(' AND ')} LIMIT 1`;
-//   return executeQuery(queryString, parsedOptions.values).then(results => results[0]);
-// }
+app.get('/logout', cookieParser, Auth.createSession, 
+(req, res, next) => {
+  
+  return models.Sessions.delete({hash: req.session.hash})
+  .then(something => {
+    res.redirect('/');
+  })
+  .catch(err => {
+    res.redirect('/login');
+  });
+  
+  res.render('login');
+});
+
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
